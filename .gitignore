@@ -1,0 +1,19 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.venv/
+.env
+
+# Raw and generated market data can be large and may have licensing limits.
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# Generated research outputs
+artifacts/
+
+# Notebook checkpoints
+.ipynb_checkpoints/

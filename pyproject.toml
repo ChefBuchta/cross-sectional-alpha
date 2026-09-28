@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ml"
+version = "0.1.0"
+description = "A learning-oriented cross-sectional equity factor research pipeline"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "pandas>=3.0.6",
+  "scikit-learn>=1.9.1",
+  "seaborn>=0.13.2",
+  "streamlit>=1.64.0",
+  "yfinance>=1.7.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

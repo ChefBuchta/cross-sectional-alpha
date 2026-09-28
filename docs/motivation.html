@@ -1,0 +1,1758 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="An interactive project brief for a cross-sectional equity factor model.">
+  <title>Relative Edge — Cross-Sectional Factor Research</title>
+  <style>
+    :root {
+      --ink: #07120f;
+      --ink-soft: #10231e;
+      --paper: #f3f0e6;
+      --paper-dim: #d8d4c8;
+      --line: rgba(243, 240, 230, 0.18);
+      --line-strong: rgba(243, 240, 230, 0.38);
+      --acid: #c9ff4a;
+      --cyan: #6ee7f2;
+      --coral: #ff8066;
+      --gold: #f5c95c;
+      --muted: #91a09a;
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+      --radius: 18px;
+      --mono: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --serif: Georgia, "Times New Roman", serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--ink);
+    }
+
+    body {
+      min-width: 320px;
+      margin: 0;
+      overflow-x: hidden;
+      color: var(--paper);
+      background:
+        linear-gradient(rgba(255, 255, 255, 0.024) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.024) 1px, transparent 1px),
+        var(--ink);
+      background-size: 42px 42px;
+      font-family: var(--sans);
+      line-height: 1.6;
+    }
+
+    body::before {
+      position: fixed;
+      z-index: 20;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      content: "";
+      transform: scaleX(var(--scroll-progress, 0));
+      transform-origin: left;
+      background: var(--acid);
+    }
+
+    a {
+      color: inherit;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .skip-link {
+      position: fixed;
+      z-index: 100;
+      top: 12px;
+      left: 12px;
+      padding: 10px 14px;
+      transform: translateY(-160%);
+      border: 1px solid var(--acid);
+      color: var(--ink);
+      background: var(--acid);
+    }
+
+    .skip-link:focus {
+      transform: translateY(0);
+    }
+
+    .shell {
+      width: min(1400px, calc(100% - 40px));
+      margin: 0 auto;
+    }
+
+    .eyebrow,
+    .data-label,
+    .kicker,
+    .metric-label {
+      font-family: var(--mono);
+      font-size: 0.74rem;
+      font-weight: 700;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+    }
+
+    .site-header {
+      display: flex;
+      min-height: 76px;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: var(--mono);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 30px;
+      height: 30px;
+      place-items: center;
+      border: 1px solid var(--acid);
+      border-radius: 50%;
+      color: var(--acid);
+      font-size: 0.72rem;
+    }
+
+    .header-meta {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 0.72rem;
+    }
+
+    .status-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      margin-right: 8px;
+      border-radius: 50%;
+      background: var(--acid);
+      box-shadow: 0 0 0 6px rgba(201, 255, 74, 0.1);
+      animation: pulse 2.4s ease-in-out infinite;
+    }
+
+    .hero {
+      display: grid;
+      min-height: 710px;
+      align-items: center;
+      grid-template-columns: minmax(0, 1.02fr) minmax(460px, 0.98fr);
+      gap: clamp(42px, 7vw, 110px);
+      padding: 80px 0 92px;
+    }
+
+    .hero > * {
+      min-width: 0;
+    }
+
+    .hero-copy {
+      min-width: 0;
+      max-width: 760px;
+    }
+
+    .eyebrow {
+      margin: 0 0 26px;
+      color: var(--acid);
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      max-width: 850px;
+      margin-bottom: 30px;
+      font-family: var(--serif);
+      font-size: clamp(3.7rem, 7.8vw, 8.4rem);
+      font-weight: 400;
+      letter-spacing: -0.075em;
+      line-height: 0.86;
+    }
+
+    h1 em {
+      color: var(--acid);
+      font-weight: 400;
+    }
+
+    .hero-lead {
+      max-width: 650px;
+      margin-bottom: 34px;
+      color: var(--paper-dim);
+      font-size: clamp(1.05rem, 1.65vw, 1.32rem);
+      line-height: 1.65;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .button {
+      display: inline-flex;
+      min-height: 50px;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 0 19px;
+      border: 1px solid var(--line-strong);
+      color: var(--paper);
+      background: transparent;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-decoration: none;
+      text-transform: uppercase;
+      transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+    }
+
+    .button.primary {
+      border-color: var(--acid);
+      color: var(--ink);
+      background: var(--acid);
+    }
+
+    .button:hover {
+      transform: translateY(-2px);
+      border-color: var(--acid);
+    }
+
+    .button:focus-visible,
+    .tab:focus-visible {
+      outline: 3px solid var(--cyan);
+      outline-offset: 3px;
+    }
+
+    .market-board {
+      position: relative;
+      overflow: hidden;
+      min-height: 540px;
+      padding: 22px;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      background: rgba(16, 35, 30, 0.86);
+      box-shadow: var(--shadow);
+    }
+
+    .market-board::after {
+      position: absolute;
+      z-index: 0;
+      top: 0;
+      left: -40%;
+      width: 30%;
+      height: 100%;
+      content: "";
+      transform: skewX(-16deg);
+      background: rgba(201, 255, 74, 0.04);
+      animation: scan 7s linear infinite;
+    }
+
+    .board-header,
+    .board-footer {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+    }
+
+    .board-header {
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--line);
+      color: var(--muted);
+    }
+
+    .chart-wrap {
+      position: relative;
+      z-index: 1;
+      padding: 24px 0 10px;
+    }
+
+    .chart-wrap svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      overflow: visible;
+    }
+
+    .grid-line {
+      stroke: rgba(243, 240, 230, 0.11);
+      stroke-width: 1;
+    }
+
+    .axis-label {
+      fill: var(--muted);
+      font-family: var(--mono);
+      font-size: 9px;
+    }
+
+    .series {
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 3.5;
+      stroke-dasharray: 720;
+      stroke-dashoffset: 720;
+      animation: draw-line 2.2s cubic-bezier(0.2, 0.75, 0.25, 1) forwards;
+    }
+
+    .series.long {
+      stroke: var(--acid);
+    }
+
+    .series.market {
+      stroke: var(--paper-dim);
+      animation-delay: 180ms;
+    }
+
+    .series.short {
+      stroke: var(--coral);
+      animation-delay: 360ms;
+    }
+
+    .chart-dot {
+      opacity: 0;
+      animation: fade-up 500ms ease 2.1s forwards;
+    }
+
+    .rank-strip {
+      display: grid;
+      margin-top: 8px;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+    }
+
+    .rank-chip {
+      padding: 10px 7px;
+      transform: translateY(12px);
+      border-top: 3px solid var(--chip-color);
+      color: var(--paper-dim);
+      background: rgba(255, 255, 255, 0.035);
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      text-align: center;
+      opacity: 0;
+      animation: fade-up 420ms ease forwards;
+    }
+
+    .rank-chip:nth-child(1) { --chip-color: var(--acid); animation-delay: 1.1s; }
+    .rank-chip:nth-child(2) { --chip-color: #9ae67a; animation-delay: 1.22s; }
+    .rank-chip:nth-child(3) { --chip-color: var(--gold); animation-delay: 1.34s; }
+    .rank-chip:nth-child(4) { --chip-color: #ee9b65; animation-delay: 1.46s; }
+    .rank-chip:nth-child(5) { --chip-color: var(--coral); animation-delay: 1.58s; }
+
+    .rank-chip strong {
+      display: block;
+      color: var(--paper);
+      font-size: 0.8rem;
+    }
+
+    .board-footer {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+    }
+
+    .positive {
+      color: var(--acid);
+    }
+
+    .ticker {
+      overflow: hidden;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      background: var(--acid);
+      color: var(--ink);
+    }
+
+    .ticker-track {
+      display: flex;
+      width: max-content;
+      animation: ticker 26s linear infinite;
+    }
+
+    .ticker-group {
+      display: flex;
+      flex: none;
+    }
+
+    .ticker-item {
+      padding: 11px 25px;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .ticker-item::before {
+      margin-right: 22px;
+      content: "◆";
+      font-size: 0.55rem;
+    }
+
+    .research-area {
+      padding: 100px 0 120px;
+    }
+
+    .section-intro {
+      display: grid;
+      align-items: end;
+      margin-bottom: 42px;
+      grid-template-columns: minmax(0, 0.7fr) minmax(300px, 0.3fr);
+      gap: 60px;
+    }
+
+    .section-intro h2 {
+      max-width: 870px;
+      margin-bottom: 0;
+      font-family: var(--serif);
+      font-size: clamp(2.7rem, 5.6vw, 5.6rem);
+      font-weight: 400;
+      letter-spacing: -0.055em;
+      line-height: 0.98;
+    }
+
+    .section-intro p {
+      margin-bottom: 4px;
+      color: var(--muted);
+    }
+
+    .tabs-shell {
+      overflow: hidden;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      background: rgba(7, 18, 15, 0.93);
+      box-shadow: var(--shadow);
+    }
+
+    .tab-list {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      border-bottom: 1px solid var(--line-strong);
+    }
+
+    .tab {
+      position: relative;
+      min-height: 76px;
+      padding: 15px 12px;
+      border: 0;
+      border-right: 1px solid var(--line);
+      color: var(--muted);
+      background: transparent;
+      cursor: pointer;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      transition: color 180ms ease, background 180ms ease;
+    }
+
+    .tab:last-child {
+      border-right: 0;
+    }
+
+    .tab::after {
+      position: absolute;
+      right: 18px;
+      bottom: 0;
+      left: 18px;
+      height: 3px;
+      content: "";
+      transform: scaleX(0);
+      background: var(--acid);
+      transition: transform 220ms ease;
+    }
+
+    .tab:hover {
+      color: var(--paper);
+      background: rgba(255, 255, 255, 0.025);
+    }
+
+    .tab[aria-selected="true"] {
+      color: var(--paper);
+      background: var(--ink-soft);
+    }
+
+    .tab[aria-selected="true"]::after {
+      transform: scaleX(1);
+    }
+
+    .tab-number {
+      display: block;
+      margin-bottom: 3px;
+      color: var(--acid);
+      font-size: 0.6rem;
+    }
+
+    .tab-panel {
+      display: none;
+      min-height: 760px;
+      padding: clamp(30px, 5vw, 72px);
+    }
+
+    .tab-panel.active {
+      display: block;
+      animation: panel-enter 420ms cubic-bezier(0.2, 0.75, 0.25, 1);
+    }
+
+    .panel-header {
+      display: grid;
+      margin-bottom: 58px;
+      grid-template-columns: minmax(0, 0.36fr) minmax(0, 0.64fr);
+      gap: 54px;
+    }
+
+    .panel-header .kicker {
+      color: var(--acid);
+    }
+
+    .panel-header h3 {
+      margin-bottom: 18px;
+      font-family: var(--serif);
+      font-size: clamp(2.3rem, 4.5vw, 4.6rem);
+      font-weight: 400;
+      letter-spacing: -0.045em;
+      line-height: 1;
+    }
+
+    .panel-header .lead {
+      max-width: 850px;
+      margin-bottom: 0;
+      color: var(--paper-dim);
+      font-size: 1.12rem;
+    }
+
+    .motivation-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(280px, 0.95fr);
+      gap: 24px;
+    }
+
+    .narrative {
+      padding-right: clamp(0px, 3vw, 40px);
+    }
+
+    .narrative p {
+      color: var(--paper-dim);
+      font-size: 1.05rem;
+    }
+
+    .narrative .pull-quote {
+      margin: 42px 0;
+      padding: 24px 0 24px 26px;
+      border-left: 4px solid var(--acid);
+      color: var(--paper);
+      font-family: var(--serif);
+      font-size: clamp(1.5rem, 2.8vw, 2.45rem);
+      line-height: 1.25;
+    }
+
+    .comparison {
+      display: grid;
+      align-content: start;
+      gap: 12px;
+    }
+
+    .comparison-card {
+      position: relative;
+      overflow: hidden;
+      padding: 22px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.025);
+    }
+
+    .comparison-card.featured {
+      border-color: rgba(201, 255, 74, 0.55);
+    }
+
+    .comparison-card h4 {
+      margin: 8px 0 11px;
+      font-family: var(--serif);
+      font-size: 1.4rem;
+      font-weight: 400;
+    }
+
+    .comparison-card p {
+      margin-bottom: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .score-line {
+      display: grid;
+      align-items: center;
+      margin-top: 18px;
+      grid-template-columns: 54px 1fr 42px;
+      gap: 10px;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+    }
+
+    .score-track {
+      height: 7px;
+      background: rgba(255, 255, 255, 0.09);
+    }
+
+    .score-fill {
+      display: block;
+      width: var(--score);
+      height: 100%;
+      transform: scaleX(0);
+      transform-origin: left;
+      background: var(--score-color, var(--acid));
+    }
+
+    .active .score-fill {
+      animation: grow-x 800ms ease forwards;
+    }
+
+    .active .score-line:nth-child(2) .score-fill { animation-delay: 100ms; }
+    .active .score-line:nth-child(3) .score-fill { animation-delay: 180ms; }
+    .active .score-line:nth-child(4) .score-fill { animation-delay: 260ms; }
+
+    .function-groups {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      border-top: 1px solid var(--line);
+      border-left: 1px solid var(--line);
+    }
+
+    .function-group {
+      position: relative;
+      padding: 28px;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .function-group::before {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 5px;
+      height: 0;
+      content: "";
+      background: var(--group-color);
+      transition: height 420ms ease;
+    }
+
+    .function-group:hover::before {
+      height: 100%;
+    }
+
+    .function-group:nth-child(1) { --group-color: var(--cyan); }
+    .function-group:nth-child(2) { --group-color: var(--acid); }
+    .function-group:nth-child(3) { --group-color: var(--gold); }
+    .function-group:nth-child(4) { --group-color: var(--coral); }
+    .function-group:nth-child(5) { --group-color: #a6a1ff; }
+    .function-group:nth-child(6) { --group-color: #ff9fd7; }
+
+    .function-group h4 {
+      margin: 7px 0 16px;
+      font-family: var(--serif);
+      font-size: 1.55rem;
+      font-weight: 400;
+    }
+
+    .function-group ul {
+      display: grid;
+      margin: 0;
+      padding: 0;
+      gap: 9px;
+      color: var(--paper-dim);
+      list-style: none;
+    }
+
+    .function-group li {
+      position: relative;
+      padding-left: 20px;
+      font-size: 0.9rem;
+    }
+
+    .function-group li::before {
+      position: absolute;
+      top: 0.55em;
+      left: 0;
+      width: 7px;
+      height: 7px;
+      border: 1px solid var(--group-color);
+      content: "";
+      transform: rotate(45deg);
+    }
+
+    .pipeline {
+      position: relative;
+      display: grid;
+      gap: 14px;
+    }
+
+    .pipeline::before {
+      position: absolute;
+      top: 30px;
+      bottom: 30px;
+      left: 28px;
+      width: 1px;
+      content: "";
+      background: linear-gradient(var(--cyan), var(--acid), var(--gold), var(--coral));
+    }
+
+    .pipeline-step {
+      position: relative;
+      display: grid;
+      min-height: 92px;
+      align-items: center;
+      padding: 18px 22px 18px 82px;
+      transform: translateY(18px);
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.022);
+      grid-template-columns: minmax(170px, 0.28fr) minmax(0, 0.72fr);
+      gap: 30px;
+      opacity: 0;
+      transition: border-color 180ms ease, transform 180ms ease, background 180ms ease;
+    }
+
+    .active .pipeline-step {
+      animation: step-enter 430ms ease forwards;
+      animation-delay: calc(var(--i) * 70ms);
+    }
+
+    .pipeline-step:hover {
+      transform: translateX(5px);
+      border-color: var(--line-strong);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .step-number {
+      position: absolute;
+      z-index: 1;
+      top: 50%;
+      left: 11px;
+      display: grid;
+      width: 36px;
+      height: 36px;
+      place-items: center;
+      transform: translateY(-50%);
+      border: 1px solid var(--acid);
+      border-radius: 50%;
+      color: var(--acid);
+      background: var(--ink);
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      font-weight: 800;
+    }
+
+    .pipeline-step h4 {
+      margin: 0;
+      font-family: var(--serif);
+      font-size: 1.3rem;
+      font-weight: 400;
+    }
+
+    .pipeline-step p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .implemented {
+      display: inline-block;
+      margin-left: 8px;
+      padding: 3px 7px;
+      border: 1px solid rgba(201, 255, 74, 0.55);
+      color: var(--acid);
+      font-family: var(--mono);
+      font-size: 0.55rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      vertical-align: middle;
+    }
+
+    .viz-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 18px;
+    }
+
+    .viz-card {
+      min-height: 290px;
+      padding: 24px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.025);
+    }
+
+    .viz-card.wide {
+      grid-column: span 7;
+    }
+
+    .viz-card.narrow {
+      grid-column: span 5;
+    }
+
+    .viz-card h4 {
+      margin: 6px 0 4px;
+      font-family: var(--serif);
+      font-size: 1.45rem;
+      font-weight: 400;
+    }
+
+    .viz-card > p {
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+
+    .mini-chart {
+      display: flex;
+      height: 150px;
+      align-items: flex-end;
+      gap: 10px;
+      margin-top: 28px;
+      padding-top: 10px;
+      border-bottom: 1px solid var(--line-strong);
+    }
+
+    .bar-column {
+      display: flex;
+      height: 100%;
+      flex: 1;
+      flex-direction: column;
+      justify-content: flex-end;
+      gap: 6px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 0.64rem;
+      text-align: center;
+    }
+
+    .bar {
+      width: 100%;
+      height: var(--height);
+      transform: scaleY(0);
+      transform-origin: bottom;
+      background: var(--bar-color);
+    }
+
+    .active .bar {
+      animation: grow-y 700ms cubic-bezier(0.2, 0.75, 0.25, 1) forwards;
+      animation-delay: calc(var(--i) * 100ms);
+    }
+
+    .ic-chart {
+      margin-top: 24px;
+    }
+
+    .ic-chart svg {
+      width: 100%;
+      height: 150px;
+    }
+
+    .ic-line {
+      fill: none;
+      stroke: var(--cyan);
+      stroke-width: 3;
+      stroke-dasharray: 600;
+      stroke-dashoffset: 600;
+    }
+
+    .active .ic-line {
+      animation: draw-line 1.7s ease forwards;
+    }
+
+    .tech-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-top: 1px solid var(--line);
+      border-left: 1px solid var(--line);
+    }
+
+    .tech-item {
+      min-height: 210px;
+      padding: 26px;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      transition: color 180ms ease, background 180ms ease;
+    }
+
+    .tech-item:hover {
+      color: var(--ink);
+      background: var(--acid);
+    }
+
+    .tech-item:hover p,
+    .tech-item:hover .data-label {
+      color: rgba(7, 18, 15, 0.72);
+    }
+
+    .tech-item h4 {
+      margin: 28px 0 10px;
+      font-family: var(--serif);
+      font-size: 1.65rem;
+      font-weight: 400;
+    }
+
+    .tech-item p {
+      margin-bottom: 0;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .principles {
+      display: grid;
+      margin-top: 54px;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .principle {
+      padding: 20px;
+      border-top: 3px solid var(--acid);
+      background: rgba(255, 255, 255, 0.026);
+    }
+
+    .principle strong {
+      display: block;
+      margin-bottom: 8px;
+      font-family: var(--serif);
+      font-size: 1.15rem;
+      font-weight: 400;
+    }
+
+    .principle span {
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .closing {
+      display: grid;
+      padding: 110px 0;
+      border-top: 1px solid var(--line);
+      grid-template-columns: 1fr 1fr;
+      gap: 70px;
+    }
+
+    .closing h2 {
+      margin: 0;
+      font-family: var(--serif);
+      font-size: clamp(3rem, 6vw, 6.2rem);
+      font-weight: 400;
+      letter-spacing: -0.055em;
+      line-height: 0.96;
+    }
+
+    .closing-copy {
+      align-self: end;
+      color: var(--paper-dim);
+      font-size: 1.08rem;
+    }
+
+    .closing-copy strong {
+      color: var(--acid);
+    }
+
+    .site-footer {
+      display: flex;
+      min-height: 100px;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+    }
+
+    @keyframes draw-line {
+      to { stroke-dashoffset: 0; }
+    }
+
+    @keyframes grow-x {
+      to { transform: scaleX(1); }
+    }
+
+    @keyframes grow-y {
+      to { transform: scaleY(1); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.65; transform: scale(0.86); }
+      50% { opacity: 1; transform: scale(1.08); }
+    }
+
+    @keyframes scan {
+      from { transform: translateX(0) skewX(-16deg); }
+      to { transform: translateX(580%) skewX(-16deg); }
+    }
+
+    @keyframes ticker {
+      to { transform: translateX(-50%); }
+    }
+
+    @keyframes fade-up {
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes panel-enter {
+      from { transform: translateY(10px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes step-enter {
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @media (max-width: 1050px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+
+      .market-board {
+        width: min(720px, 100%);
+      }
+
+      .section-intro,
+      .panel-header,
+      .closing {
+        grid-template-columns: 1fr;
+      }
+
+      .motivation-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .tech-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .principles {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 760px) {
+      .shell {
+        width: min(100% - 24px, 1400px);
+      }
+
+      .header-meta span:first-child {
+        display: none;
+      }
+
+      .hero {
+        min-height: auto;
+        padding: 62px 0 70px;
+      }
+
+      h1 {
+        font-size: clamp(3.1rem, 18vw, 5.4rem);
+      }
+
+      h1 em {
+        display: block;
+      }
+
+      .hero-actions .button {
+        flex: 1 1 165px;
+      }
+
+      .market-board {
+        width: 100%;
+        min-height: auto;
+        padding: 16px;
+      }
+
+      .rank-strip {
+        grid-template-columns: repeat(5, minmax(62px, 1fr));
+        overflow-x: auto;
+      }
+
+      .research-area {
+        padding: 75px 0 90px;
+      }
+
+      .tab-list {
+        display: flex;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+      }
+
+      .tab {
+        min-width: 145px;
+        flex: 1 0 auto;
+        scroll-snap-align: start;
+      }
+
+      .tab-panel {
+        padding: 28px 18px 42px;
+      }
+
+      .panel-header {
+        margin-bottom: 38px;
+        gap: 10px;
+      }
+
+      .function-groups,
+      .tech-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .pipeline-step {
+        align-items: start;
+        padding: 20px 16px 20px 68px;
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+
+      .viz-card.wide,
+      .viz-card.narrow {
+        grid-column: 1 / -1;
+      }
+
+      .principles {
+        grid-template-columns: 1fr;
+      }
+
+      .closing {
+        padding: 80px 0;
+        gap: 35px;
+      }
+
+      .site-footer {
+        align-items: flex-start;
+        flex-direction: column;
+        justify-content: center;
+        gap: 5px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+
+      .series,
+      .ic-line {
+        stroke-dashoffset: 0;
+      }
+
+      .score-fill,
+      .bar {
+        transform: none;
+      }
+
+      .pipeline-step,
+      .rank-chip,
+      .chart-dot {
+        transform: none;
+        opacity: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#research">Skip to project brief</a>
+
+  <header class="site-header shell">
+    <div class="brand">
+      <span class="brand-mark">RE</span>
+      <span>Relative Edge / Research Brief</span>
+    </div>
+    <div class="header-meta">
+      <span>Cross-sectional factor model</span>
+      <span><i class="status-dot"></i>Stage 02 active</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero shell" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow">Machine learning × statistics × markets</p>
+        <h1 id="hero-title">Find the <em>relative</em> edge.</h1>
+        <p class="hero-lead">
+          Do not ask whether one stock will rise tomorrow. Build a research system
+          that compares an entire market, ranks likely winners and losers, and then
+          tests whether that ranking survives time, costs, and uncertainty.
+        </p>
+        <div class="hero-actions">
+          <a class="button primary" href="#research">Explore the project <span aria-hidden="true">↓</span></a>
+          <a class="button" href="#pipeline-panel" data-open-tab="pipeline-tab">See the pipeline</a>
+        </div>
+      </div>
+
+      <div class="market-board" aria-label="Animated illustration of relative stock performance">
+        <div class="board-header">
+          <span>Illustrative relative performance</span>
+          <span>20D window</span>
+        </div>
+        <div class="chart-wrap">
+          <svg viewBox="0 0 520 300" role="img" aria-labelledby="chart-title chart-desc">
+            <title id="chart-title">Ranked performance illustration</title>
+            <desc id="chart-desc">Three animated lines represent a top-ranked stock, the market, and a bottom-ranked stock.</desc>
+            <line class="grid-line" x1="42" y1="40" x2="500" y2="40"></line>
+            <line class="grid-line" x1="42" y1="105" x2="500" y2="105"></line>
+            <line class="grid-line" x1="42" y1="170" x2="500" y2="170"></line>
+            <line class="grid-line" x1="42" y1="235" x2="500" y2="235"></line>
+            <text class="axis-label" x="4" y="44">+12%</text>
+            <text class="axis-label" x="12" y="109">+6%</text>
+            <text class="axis-label" x="20" y="174">0%</text>
+            <text class="axis-label" x="8" y="239">−6%</text>
+            <path class="series long" d="M42 202 C85 198, 94 169, 130 174 S194 151, 222 142 S270 115, 306 124 S359 86, 397 95 S450 57, 500 52"></path>
+            <path class="series market" d="M42 202 C83 194, 102 184, 138 185 S201 175, 232 177 S286 157, 322 164 S380 151, 416 151 S464 136, 500 140"></path>
+            <path class="series short" d="M42 202 C81 207, 104 195, 137 210 S191 202, 226 218 S281 215, 315 232 S373 220, 411 241 S463 238, 500 260"></path>
+            <circle class="chart-dot" cx="500" cy="52" r="5" fill="#c9ff4a"></circle>
+            <circle class="chart-dot" cx="500" cy="140" r="5" fill="#d8d4c8"></circle>
+            <circle class="chart-dot" cx="500" cy="260" r="5" fill="#ff8066"></circle>
+          </svg>
+          <div class="rank-strip" aria-label="Illustrative stock ranking">
+            <div class="rank-chip"><strong>01 MSFT</strong>Long</div>
+            <div class="rank-chip"><strong>02 AAPL</strong>Long</div>
+            <div class="rank-chip"><strong>03 JPM</strong>Neutral</div>
+            <div class="rank-chip"><strong>04 KO</strong>Short</div>
+            <div class="rank-chip"><strong>05 TSLA</strong>Short</div>
+          </div>
+        </div>
+        <div class="board-footer">
+          <span>Relative spread</span>
+          <span class="positive">+8.4% before costs</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="ticker" aria-hidden="true">
+      <div class="ticker-track">
+        <div class="ticker-group">
+          <span class="ticker-item">Rank, do not guess</span>
+          <span class="ticker-item">Measure uncertainty</span>
+          <span class="ticker-item">Respect chronology</span>
+          <span class="ticker-item">Subtract trading costs</span>
+          <span class="ticker-item">Explain every chart</span>
+        </div>
+        <div class="ticker-group">
+          <span class="ticker-item">Rank, do not guess</span>
+          <span class="ticker-item">Measure uncertainty</span>
+          <span class="ticker-item">Respect chronology</span>
+          <span class="ticker-item">Subtract trading costs</span>
+          <span class="ticker-item">Explain every chart</span>
+        </div>
+      </div>
+    </div>
+
+    <section class="research-area shell" id="research" aria-labelledby="research-title">
+      <div class="section-intro">
+        <h2 id="research-title">One project. Five ways to understand it.</h2>
+        <p>
+          Move through the tabs as a research narrative: first the reason, then
+          the system, the sequence, the evidence, and finally the tools.
+        </p>
+      </div>
+
+      <div class="tabs-shell">
+        <div class="tab-list" role="tablist" aria-label="Project brief sections">
+          <button class="tab" id="motivation-tab" role="tab" aria-selected="true" aria-controls="motivation-panel" tabindex="0">
+            <span class="tab-number">01</span>Motivation
+          </button>
+          <button class="tab" id="functionality-tab" role="tab" aria-selected="false" aria-controls="functionality-panel" tabindex="-1">
+            <span class="tab-number">02</span>Functionality
+          </button>
+          <button class="tab" id="pipeline-tab" role="tab" aria-selected="false" aria-controls="pipeline-panel" tabindex="-1">
+            <span class="tab-number">03</span>Pipeline
+          </button>
+          <button class="tab" id="visuals-tab" role="tab" aria-selected="false" aria-controls="visuals-panel" tabindex="-1">
+            <span class="tab-number">04</span>Visual evidence
+          </button>
+          <button class="tab" id="technology-tab" role="tab" aria-selected="false" aria-controls="technology-panel" tabindex="-1">
+            <span class="tab-number">05</span>Technology
+          </button>
+        </div>
+
+        <article class="tab-panel active" id="motivation-panel" role="tabpanel" aria-labelledby="motivation-tab">
+          <header class="panel-header">
+            <p class="kicker">Why build it?</p>
+            <div>
+              <h3>A laboratory for honest machine learning.</h3>
+              <p class="lead">
+                Markets make every modeling weakness visible. A convincing result
+                requires good data, careful statistics, strict chronology, realistic
+                costs, and explanations that survive scrutiny—not merely a high score.
+              </p>
+            </div>
+          </header>
+
+          <div class="motivation-grid">
+            <div class="narrative">
+              <p>
+                Suppose the market falls six percent. Apple falls three percent,
+                Microsoft falls two percent, and a weak competitor falls eleven percent.
+                An absolute forecast saying “Apple will rise” failed. A relative forecast
+                ranking Microsoft and Apple above the competitor can still be useful.
+              </p>
+              <p class="pull-quote">
+                The objective is not to predict the future perfectly. It is to test
+                whether measurable differences between stocks contain a small,
+                repeatable ranking signal.
+              </p>
+              <p>
+                That change in question—from direction to ranking—creates a richer
+                research problem. Every date becomes a new comparison across many
+                companies. Momentum asks which stocks have persisted. Reversal asks
+                which have moved too far too quickly. Volatility describes uncertainty.
+                Volume indicates whether a movement attracted unusual participation.
+              </p>
+              <p>
+                The project joins probability, linear algebra, optimization, algorithms,
+                software design, and visual communication. You learn why a model appears
+                predictive, when the relationship breaks, how costs reduce the result,
+                and how easily future information can accidentally leak into the past.
+              </p>
+              <p>
+                The final result is not a promise of profit. It is a reproducible
+                scientific argument: here is the hypothesis, here is the data available
+                at the time, here is the test, here are the failures, and here is the
+                uncertainty around the conclusion.
+              </p>
+            </div>
+
+            <aside class="comparison" aria-label="Comparison of project approaches">
+              <div class="comparison-card">
+                <span class="data-label">Fragile question</span>
+                <h4>“Will AAPL go up tomorrow?”</h4>
+                <p>One asset, one direction, heavy exposure to unpredictable market news.</p>
+              </div>
+              <div class="comparison-card featured">
+                <span class="data-label">Research question</span>
+                <h4>“Which stocks will outperform their peers?”</h4>
+                <p>Many assets, relative ranking, measurable performance across the full universe.</p>
+                <div class="score-line"><span>MSFT</span><span class="score-track"><i class="score-fill" style="--score: 92%"></i></span><span>0.92</span></div>
+                <div class="score-line"><span>AAPL</span><span class="score-track"><i class="score-fill" style="--score: 76%"></i></span><span>0.76</span></div>
+                <div class="score-line"><span>JPM</span><span class="score-track"><i class="score-fill" style="--score: 51%; --score-color: var(--gold)"></i></span><span>0.51</span></div>
+                <div class="score-line"><span>TSLA</span><span class="score-track"><i class="score-fill" style="--score: 18%; --score-color: var(--coral)"></i></span><span>0.18</span></div>
+              </div>
+              <div class="comparison-card">
+                <span class="data-label">What you really learn</span>
+                <h4>How to distrust a beautiful backtest.</h4>
+                <p>Look-ahead bias, survivorship bias, overfitting, turnover, slippage, and regime change become practical—not theoretical.</p>
+              </div>
+            </aside>
+          </div>
+        </article>
+
+        <article class="tab-panel" id="functionality-panel" role="tabpanel" aria-labelledby="functionality-tab" hidden>
+          <header class="panel-header">
+            <p class="kicker">What should it do?</p>
+            <div>
+              <h3>From raw prices to defensible evidence.</h3>
+              <p class="lead">
+                The application should separate each responsibility so that data errors,
+                modeling choices, portfolio rules, and visual conclusions can be tested independently.
+              </p>
+            </div>
+          </header>
+
+          <div class="function-groups">
+            <section class="function-group">
+              <span class="data-label">01 / Data</span>
+              <h4>Acquire and validate</h4>
+              <ul>
+                <li>Download daily OHLCV observations for one or many tickers.</li>
+                <li>Normalize symbols, dates, columns, and adjusted prices.</li>
+                <li>Cache raw responses so experiments can be reproduced offline.</li>
+                <li>Detect missing rows, duplicate observations, and impossible prices.</li>
+                <li>Report unavailable tickers instead of silently discarding them.</li>
+                <li>Record download time, provider, interval, and universe definition.</li>
+              </ul>
+            </section>
+
+            <section class="function-group">
+              <span class="data-label">02 / Factors</span>
+              <h4>Describe market behavior</h4>
+              <ul>
+                <li>Calculate short-, medium-, and long-horizon momentum.</li>
+                <li>Represent short-term reversal and distance from moving averages.</li>
+                <li>Measure rolling volatility, range, downside risk, and beta.</li>
+                <li>Detect unusual volume and calculate rolling dollar liquidity.</li>
+                <li>Clip extreme values and normalize factors within each date.</li>
+                <li>Audit feature availability to prevent future information leakage.</li>
+              </ul>
+            </section>
+
+            <section class="function-group">
+              <span class="data-label">03 / Learning</span>
+              <h4>Train without time travel</h4>
+              <ul>
+                <li>Build one-, five-, and twenty-day forward-return targets.</li>
+                <li>Convert future returns into daily cross-sectional ranks.</li>
+                <li>Use expanding or rolling walk-forward validation windows.</li>
+                <li>Compare equal-weight factors, Ridge, Lasso, and nonlinear models.</li>
+                <li>Save coefficients, parameters, predictions, and split definitions.</li>
+                <li>Reserve a final period that is never used for model selection.</li>
+              </ul>
+            </section>
+
+            <section class="function-group">
+              <span class="data-label">04 / Portfolio</span>
+              <h4>Turn scores into positions</h4>
+              <ul>
+                <li>Rank all eligible stocks by their predicted relative return.</li>
+                <li>Long the top group and short the bottom group.</li>
+                <li>Apply position limits, liquidity filters, and rebalance schedules.</li>
+                <li>Track gross, net, sector, and market-beta exposure.</li>
+                <li>Calculate turnover before applying transaction-cost assumptions.</li>
+                <li>Separate long-side, short-side, and cost contributions.</li>
+              </ul>
+            </section>
+
+            <section class="function-group">
+              <span class="data-label">05 / Evaluation</span>
+              <h4>Challenge the result</h4>
+              <ul>
+                <li>Measure daily and rolling Spearman Information Coefficient.</li>
+                <li>Compare return curves for quintiles and deciles.</li>
+                <li>Calculate Sharpe ratio, drawdown, volatility, and hit rate.</li>
+                <li>Stress-test transaction costs and rebalance frequency.</li>
+                <li>Break results down by year, sector, and volatility regime.</li>
+                <li>Compare every complex model against a simple baseline.</li>
+              </ul>
+            </section>
+
+            <section class="function-group">
+              <span class="data-label">06 / Communication</span>
+              <h4>Make research inspectable</h4>
+              <ul>
+                <li>Display data coverage and missing-value summaries.</li>
+                <li>Plot distributions, correlations, and factor-return relationships.</li>
+                <li>Show prediction ranks, equity, drawdown, turnover, and costs.</li>
+                <li>Explain model coefficients and feature importance.</li>
+                <li>Export experiment configuration, predictions, and metrics.</li>
+                <li>State limitations alongside results—not in fine print.</li>
+              </ul>
+            </section>
+          </div>
+        </article>
+
+        <article class="tab-panel" id="pipeline-panel" role="tabpanel" aria-labelledby="pipeline-tab" hidden>
+          <header class="panel-header">
+            <p class="kicker">How does data move?</p>
+            <div>
+              <h3>A one-way path from observation to conclusion.</h3>
+              <p class="lead">
+                Information must move forward through time. Features belong to the
+                known past; targets and realized returns belong to the unknown future.
+                Mixing them invalidates the experiment.
+              </p>
+            </div>
+          </header>
+
+          <div class="pipeline">
+            <section class="pipeline-step" style="--i: 0">
+              <span class="step-number">01</span>
+              <h4>Experiment configuration</h4>
+              <p>Define symbols, date range, prediction horizon, rebalance frequency, costs, and random seed before viewing results.</p>
+            </section>
+            <section class="pipeline-step" style="--i: 1">
+              <span class="step-number">02</span>
+              <h4>Yahoo Finance ingestion <span class="implemented">Implemented</span></h4>
+              <p>Download OHLCV data and convert it into a consistent date–symbol table with explicit errors.</p>
+            </section>
+            <section class="pipeline-step" style="--i: 2">
+              <span class="step-number">03</span>
+              <h4>Quality control</h4>
+              <p>Inspect missing observations, duplicates, price relationships, corporate-action adjustments, and history length.</p>
+            </section>
+            <section class="pipeline-step" style="--i: 3">
+              <span class="step-number">04</span>
+              <h4>Universe selection</h4>
+              <p>Apply point-in-time eligibility, liquidity, price, and minimum-history rules without using future membership.</p>
+            </section>
+            <section class="pipeline-step" style="--i: 4">
+              <span class="step-number">05</span>
+              <h4>Feature engineering</h4>
+              <p>Calculate momentum, reversal, volatility, volume, beta, and market-relative descriptors using past data only.</p>
+            </section>
+            <section class="pipeline-step" style="--i: 5">
+              <span class="step-number">06</span>
+              <h4>Cross-sectional preprocessing</h4>
+              <p>Clip outliers and transform every feature into a z-score or percentile relative to stocks available that day.</p>
+            </section>
+            <section class="pipeline-step" style="--i: 6">
+              <span class="step-number">07</span>
+              <h4>Target generation</h4>
+              <p>Calculate future returns, then rank them within each date to create a robust supervised-learning target.</p>
+            </section>
+            <section class="pipeline-step" style="--i: 7">
+              <span class="step-number">08</span>
+              <h4>Walk-forward validation</h4>
+              <p>Train on the past, validate on the next period, test later, and use embargo gaps when labels overlap.</p>
+            </section>
+            <section class="pipeline-step" style="--i: 8">
+              <span class="step-number">09</span>
+              <h4>Model comparison</h4>
+              <p>Start with simple factor averages and Ridge regression before testing trees or boosting.</p>
+            </section>
+            <section class="pipeline-step" style="--i: 9">
+              <span class="step-number">10</span>
+              <h4>Prediction and ranking</h4>
+              <p>Generate one score per stock per date, then convert scores into stable cross-sectional ranks.</p>
+            </section>
+            <section class="pipeline-step" style="--i: 10">
+              <span class="step-number">11</span>
+              <h4>Portfolio construction</h4>
+              <p>Long the highest-ranked group, short the lowest, and constrain concentration and unwanted exposure.</p>
+            </section>
+            <section class="pipeline-step" style="--i: 11">
+              <span class="step-number">12</span>
+              <h4>Backtest and friction</h4>
+              <p>Lag positions correctly, calculate turnover, deduct costs, and attribute performance to long and short books.</p>
+            </section>
+            <section class="pipeline-step" style="--i: 12">
+              <span class="step-number">13</span>
+              <h4>Evaluation and reporting</h4>
+              <p>Combine predictive metrics, portfolio metrics, robustness tests, visual evidence, and limitations.</p>
+            </section>
+          </div>
+        </article>
+
+        <article class="tab-panel" id="visuals-panel" role="tabpanel" aria-labelledby="visuals-tab" hidden>
+          <header class="panel-header">
+            <p class="kicker">What proves the claim?</p>
+            <div>
+              <h3>Charts are diagnostic instruments.</h3>
+              <p class="lead">
+                A useful visualization should answer a research question: does the
+                ranking separate returns, is the signal stable, where are the losses,
+                and does the edge survive costs?
+              </p>
+            </div>
+          </header>
+
+          <div class="viz-grid">
+            <section class="viz-card wide">
+              <span class="data-label">Quintile separation</span>
+              <h4>Do better predictions produce better returns?</h4>
+              <p>Average future return should increase reasonably from the lowest-ranked group, Q1, toward the highest-ranked group, Q5.</p>
+              <div class="mini-chart" aria-label="Illustrative increasing returns by prediction quintile">
+                <div class="bar-column">Q1<span class="bar" style="--i: 0; --height: 24%; --bar-color: var(--coral)"></span></div>
+                <div class="bar-column">Q2<span class="bar" style="--i: 1; --height: 39%; --bar-color: #ee9b65"></span></div>
+                <div class="bar-column">Q3<span class="bar" style="--i: 2; --height: 51%; --bar-color: var(--gold)"></span></div>
+                <div class="bar-column">Q4<span class="bar" style="--i: 3; --height: 68%; --bar-color: #9ae67a"></span></div>
+                <div class="bar-column">Q5<span class="bar" style="--i: 4; --height: 88%; --bar-color: var(--acid)"></span></div>
+              </div>
+            </section>
+
+            <section class="viz-card narrow">
+              <span class="data-label">Information coefficient</span>
+              <h4>Is ranking skill stable?</h4>
+              <p>A rolling rank correlation reveals when the model strengthens, weakens, or reverses.</p>
+              <div class="ic-chart">
+                <svg viewBox="0 0 400 150" role="img" aria-label="Illustrative rolling information coefficient">
+                  <line class="grid-line" x1="0" y1="75" x2="400" y2="75"></line>
+                  <path class="ic-line" d="M0 102 C32 84, 51 88, 75 65 S119 45, 144 60 S190 90, 214 68 S255 36, 280 52 S326 79, 350 63 S380 45, 400 48"></path>
+                </svg>
+              </div>
+            </section>
+
+            <section class="viz-card narrow">
+              <span class="data-label">Risk</span>
+              <h4>Where did capital retreat?</h4>
+              <p>Equity and drawdown should be viewed together. Return without the path hides the experience of risk.</p>
+              <div class="ic-chart">
+                <svg viewBox="0 0 400 150" role="img" aria-label="Illustrative drawdown curve">
+                  <line class="grid-line" x1="0" y1="20" x2="400" y2="20"></line>
+                  <path d="M0 20 L35 20 L55 50 L76 31 L101 20 L135 20 L163 80 L190 105 L222 67 L254 20 L290 20 L317 48 L346 32 L375 20 L400 20 L400 150 L0 150 Z" fill="rgba(255,128,102,.18)"></path>
+                  <path d="M0 20 L35 20 L55 50 L76 31 L101 20 L135 20 L163 80 L190 105 L222 67 L254 20 L290 20 L317 48 L346 32 L375 20 L400 20" fill="none" stroke="#ff8066" stroke-width="3"></path>
+                </svg>
+              </div>
+            </section>
+
+            <section class="viz-card wide">
+              <span class="data-label">Research dashboard</span>
+              <h4>The full visual checklist</h4>
+              <p>
+                Data coverage and missingness; normalized prices; factor distributions;
+                correlation heatmaps; factor quintiles; prediction deciles; daily and
+                rolling IC; equity and drawdown; rolling Sharpe; turnover; cost sensitivity;
+                coefficient stability; feature importance; market-regime breakdown; sector
+                exposure; and downloadable experiment results.
+              </p>
+              <div class="principles">
+                <div class="principle"><strong>Explain</strong><span>Every chart answers a named question.</span></div>
+                <div class="principle"><strong>Compare</strong><span>Always include a simple baseline.</span></div>
+                <div class="principle"><strong>Stress</strong><span>Show costs and unstable periods.</span></div>
+                <div class="principle"><strong>Disclose</strong><span>Place limitations near results.</span></div>
+              </div>
+            </section>
+          </div>
+        </article>
+
+        <article class="tab-panel" id="technology-panel" role="tabpanel" aria-labelledby="technology-tab" hidden>
+          <header class="panel-header">
+            <p class="kicker">What will you use?</p>
+            <div>
+              <h3>A compact stack with clear responsibilities.</h3>
+              <p class="lead">
+                Use the smallest tool that makes each research stage explicit.
+                Complexity is earned only when a simpler baseline cannot answer the question.
+              </p>
+            </div>
+          </header>
+
+          <div class="tech-grid">
+            <section class="tech-item">
+              <span class="data-label">Language</span>
+              <h4>Python</h4>
+              <p>Coordinates the pipeline, expresses financial calculations clearly, and connects the entire scientific ecosystem.</p>
+            </section>
+            <section class="tech-item">
+              <span class="data-label">Market data</span>
+              <h4>yfinance</h4>
+              <p>Supplies accessible historical OHLCV data for a learning project. Suitable for research prototypes, not production execution.</p>
+            </section>
+            <section class="tech-item">
+              <span class="data-label">Tables</span>
+              <h4>pandas</h4>
+              <p>Handles date–symbol tables, rolling windows, grouped normalization, joins, missing values, and resampling.</p>
+            </section>
+            <section class="tech-item">
+              <span class="data-label">Numerics</span>
+              <h4>NumPy</h4>
+              <p>Provides vectorized arrays and efficient numerical operations for returns, weights, simulation, and metrics.</p>
+            </section>
+            <section class="tech-item">
+              <span class="data-label">Learning</span>
+              <h4>scikit-learn</h4>
+              <p>Offers Ridge, Lasso, preprocessing, pipelines, model inspection, and reproducible evaluation primitives.</p>
+            </section>
+            <section class="tech-item">
+              <span class="data-label">Exploration</span>
+              <h4>Seaborn</h4>
+              <p>Creates fast statistical views of distributions, correlations, feature behavior, and grouped performance.</p>
+            </section>
+            <section class="tech-item">
+              <span class="data-label">Interaction</span>
+              <h4>Streamlit</h4>
+              <p>Turns research outputs into a filterable dashboard without requiring a separate frontend service.</p>
+            </section>
+            <section class="tech-item">
+              <span class="data-label">Quality</span>
+              <h4>unittest</h4>
+              <p>Checks date logic, factor calculations, leakage guards, portfolio accounting, and failure behavior.</p>
+            </section>
+            <section class="tech-item">
+              <span class="data-label">Reproducibility</span>
+              <h4>Git + uv</h4>
+              <p>Track research changes and lock the Python environment so another machine can reproduce the experiment.</p>
+            </section>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="closing shell" aria-labelledby="closing-title">
+      <h2 id="closing-title">Build an argument, not a prediction.</h2>
+      <div class="closing-copy">
+        <p>
+          The measure of success is not a spectacular equity curve. It is whether
+          another researcher can follow the data, reproduce the experiment, identify
+          the assumptions, and understand why the evidence supports—or rejects—the hypothesis.
+        </p>
+        <p><strong>Current milestone:</strong> reliable Yahoo Finance ingestion. Everything after it remains intentionally open.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer shell">
+    <span>Cross-sectional factor research / project motivation</span>
+    <span>Designed for learning, not financial advice</span>
+  </footer>
+
+  <script>
+    const tabs = Array.from(document.querySelectorAll('[role="tab"]'));
+    const panels = Array.from(document.querySelectorAll('[role="tabpanel"]'));
+
+    function activateTab(tab, moveFocus = true) {
+      const panelId = tab.getAttribute('aria-controls');
+
+      tabs.forEach((item) => {
+        const selected = item === tab;
+        item.setAttribute('aria-selected', String(selected));
+        item.tabIndex = selected ? 0 : -1;
+      });
+
+      panels.forEach((panel) => {
+        const selected = panel.id === panelId;
+        panel.hidden = !selected;
+        panel.classList.toggle('active', selected);
+      });
+
+      if (moveFocus) {
+        tab.focus();
+      }
+    }
+
+    tabs.forEach((tab, index) => {
+      tab.addEventListener('click', () => activateTab(tab, false));
+      tab.addEventListener('keydown', (event) => {
+        let nextIndex = index;
+
+        if (event.key === 'ArrowRight') nextIndex = (index + 1) % tabs.length;
+        if (event.key === 'ArrowLeft') nextIndex = (index - 1 + tabs.length) % tabs.length;
+        if (event.key === 'Home') nextIndex = 0;
+        if (event.key === 'End') nextIndex = tabs.length - 1;
+
+        if (nextIndex !== index) {
+          event.preventDefault();
+          activateTab(tabs[nextIndex]);
+        }
+      });
+    });
+
+    document.querySelectorAll('[data-open-tab]').forEach((link) => {
+      link.addEventListener('click', () => {
+        const tab = document.getElementById(link.dataset.openTab);
+        if (tab) activateTab(tab, false);
+      });
+    });
+
+    function updateScrollProgress() {
+      const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = scrollable > 0 ? window.scrollY / scrollable : 0;
+      document.body.style.setProperty('--scroll-progress', progress);
+    }
+
+    window.addEventListener('scroll', updateScrollProgress, { passive: true });
+    updateScrollProgress();
+  </script>
+</body>
+</html>
