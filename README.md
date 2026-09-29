@@ -68,6 +68,19 @@ For the long-form visual explanation, open
 [the interactive motivation page](docs/motivation.html) after cloning the
 repository.
 
+## Learning handbook
+
+The [Quantitative ML Foundations handbook](docs/handbook/README.md) explains the
+individual technologies and concepts independently of this repository. It covers
+the Python data stack, market-data preparation, factor statistics, ML models,
+time-aware validation, portfolio construction, backtesting, evaluation,
+visualization, dashboards, reproducibility, mathematical foundations, advanced
+factor engineering, statistical inference, portfolio optimization, a complete
+worked case study, and key terminology.
+
+For the same material in one searchable, interactive document, open the
+[single-file visual handbook](docs/quantitative_ml_handbook.html).
+
 ## Research question
 
 The main hypothesis is:
@@ -369,7 +382,9 @@ relative-edge/
 │   └── processed/             # Features, targets, and experiment datasets
 ├── docs/
 │   ├── architecture.md        # Planned architecture documentation
-│   └── motivation.html        # Interactive project explanation
+│   ├── handbook/              # Technology and finance learning chapters
+│   ├── motivation.html        # Interactive project explanation
+│   └── quantitative_ml_handbook.html  # Complete single-file visual handbook
 ├── notebooks/
 │   └── README.md              # Planned exploratory notebook index
 ├── src/
