@@ -23,7 +23,7 @@ class YahooFinanceDataLoader:
         "Volume": "volume",
     }
 
-    def __init__(self, session=None, timeout_seconds: float = 30.0) -> None:
+    def __init__(self, session=None, timeout_seconds: int = 30) -> None:
         if timeout_seconds <= 0:
             raise ValueError("timeout_seconds must be positive")
         self.timeout_seconds = timeout_seconds
@@ -87,12 +87,23 @@ class YahooFinanceDataLoader:
         available_symbols = set(market_data.columns.get_level_values(0))
         frames: list[pd.DataFrame] = []
 
+        missing_symbols = set(symbols) - available_symbols
+
+        if missing_symbols:
+            missing = ", ".join(missing_symbols)
+            raise YahooFinanceDataError(f"Yahoo Finance returned no columns for requested symbols: {missing}")
+
         for symbol in symbols:
-            if symbol not in available_symbols:
-                continue
-            symbol_data = market_data[symbol].rename(columns=self._COLUMN_NAMES).copy()
+            symbol_data = market_data[symbol].rename(columns=self._COLUMN_NAMES).copy()  # type: ignore[reportCallIssue]
             symbol_data.index.name = "date"
             symbol_data["symbol"] = symbol
+
+            if "adjusted_close" not in symbol_data.columns:
+                raise YahooFinanceDataError(f"Yahoo Finance data is missing adjusted_close for {symbol}")
+
+            if symbol_data["adjusted_close"].dropna().empty:
+                raise YahooFinanceDataError(f"Yahoo Finance returned no usable adjusted-close prices for {symbol}")
+
             frames.append(symbol_data.reset_index())
 
         if not frames:
