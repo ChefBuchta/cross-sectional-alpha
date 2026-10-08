@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 
 from factor_model.config import ExperimentConfig
+from factor_model.models import ValidationSplits
 
 
 MODEL_FEATURE_COLUMNS = (
@@ -20,7 +21,7 @@ def split_labeled_data(
     labeled: pd.DataFrame,
     config: ExperimentConfig,
     feature_columns: Sequence[str] = MODEL_FEATURE_COLUMNS,
-) -> dict[str, pd.DataFrame]:
+) -> ValidationSplits:
     """Split by prediction date and purge labels crossing the next boundary.
 
     Each result retains feature, target, and metadata columns. Select model
@@ -54,20 +55,24 @@ def split_labeled_data(
 
     validation_start = pd.Timestamp(config.validation_start)
     test_start = pd.Timestamp(config.test_start)
-    splits = {
-        "train": frame.loc[
+    splits = ValidationSplits(
+        train=frame.loc[
             (frame["date"] < validation_start)
             & (frame["label_end_date"] < validation_start)
         ].copy(),
-        "validation": frame.loc[
+        valid=frame.loc[
             (frame["date"] >= validation_start)
             & (frame["date"] < test_start)
             & (frame["label_end_date"] < test_start)
         ].copy(),
-        "test": frame.loc[frame["date"] >= test_start].copy(),
-    }
+        test=frame.loc[frame["date"] >= test_start].copy(),
+    )
 
-    for name, split in splits.items():
+    for name, split in (
+        ("train", splits.train),
+        ("valid", splits.valid),
+        ("test", splits.test),
+    ):
         if split.empty:
             raise ValueError(f"{name} split is empty")
         daily_symbols = split.groupby("date")["symbol"].agg(set)

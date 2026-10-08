@@ -2,8 +2,10 @@ import unittest
 from datetime import date
 
 import pandas as pd
+from pydantic import ValidationError
 
 from factor_model.config import ExperimentConfig
+from factor_model.models import ValidationSplits
 from factor_model.validation import split_labeled_data
 
 
@@ -47,20 +49,21 @@ class SplitLabeledDataTest(unittest.TestCase):
         splits = split_labeled_data(self.labeled, self.config)
 
         pd.testing.assert_frame_equal(self.labeled, original)
-        self.assertEqual([len(splits[name]) for name in splits], [4, 4, 2])
+        self.assertIsInstance(splits, ValidationSplits)
+        self.assertEqual([len(splits.train), len(splits.valid), len(splits.test)], [4, 4, 2])
         self.assertEqual(
-            set(splits["train"]["date"]),
+            set(splits.train["date"]),
             set(pd.to_datetime(["2024-12-30", "2024-12-31"])),
         )
         self.assertEqual(
-            set(splits["validation"]["date"]),
+            set(splits.valid["date"]),
             set(pd.to_datetime(["2025-01-06", "2025-01-07"])),
         )
         self.assertTrue(
-            (splits["train"]["label_end_date"] < pd.Timestamp("2025-01-06")).all()
+            (splits.train["label_end_date"] < pd.Timestamp("2025-01-06")).all()
         )
         self.assertTrue(
-            (splits["validation"]["label_end_date"] < pd.Timestamp("2025-01-10")).all()
+            (splits.valid["label_end_date"] < pd.Timestamp("2025-01-10")).all()
         )
 
     def test_rejects_incomplete_daily_universe(self) -> None:
@@ -71,6 +74,10 @@ class SplitLabeledDataTest(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "incomplete daily universe"):
             split_labeled_data(incomplete, self.config)
+
+    def test_result_model_requires_dataframes(self) -> None:
+        with self.assertRaises(ValidationError):
+            ValidationSplits(train="not a table", valid=pd.DataFrame(), test=pd.DataFrame())
 
 
 if __name__ == "__main__":
