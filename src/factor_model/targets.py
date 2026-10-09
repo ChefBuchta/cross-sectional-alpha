@@ -1,7 +1,8 @@
 """Build future-return labels for eligible stock feature rows."""
 
-import numpy as np
 import pandas as pd
+
+from factor_model.data_checks import check_daily_universe, check_finite_columns
 
 
 def build_targets(
@@ -37,15 +38,14 @@ def build_targets(
     )
     labeled = labeled.dropna(subset=[return_column, "label_end_date"]).copy()
 
-    if not np.isfinite(labeled[return_column]).all():
-        raise ValueError("forward returns must be finite")
+    check_finite_columns(labeled, [return_column], "forward returns must be finite")
     if not (labeled["label_end_date"] > labeled["date"]).all():
         raise ValueError("label end dates must follow prediction dates")
 
     expected_symbols = set(eligible_features["symbol"])
-    symbols_by_date = labeled.groupby("date")["symbol"].agg(set)
-    if not symbols_by_date.apply(lambda symbols: symbols == expected_symbols).all():
-        raise ValueError("some dates have an incomplete target universe")
+    check_daily_universe(
+        labeled, expected_symbols, "some dates have an incomplete target universe"
+    )
 
     labeled[percentile_column] = (
         labeled.groupby("date")[return_column]
