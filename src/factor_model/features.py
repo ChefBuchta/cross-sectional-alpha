@@ -26,6 +26,8 @@ def build_features(prices: pd.DataFrame) -> pd.DataFrame:
     ):
         features[column] = by_symbol["adjusted_close"].pct_change(periods=periods)
 
+    features["baseline_score"] = features["trailing_return_20d"]
+
     for return_column, rank_column in (
         ("trailing_return_1d", "trailing_return_rank_1d"),
         ("trailing_return_5d", "trailing_return_rank_5d"),
