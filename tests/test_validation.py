@@ -4,8 +4,7 @@ from datetime import date
 import pandas as pd
 from pydantic import ValidationError
 
-from factor_model.config import ExperimentConfig
-from factor_model.models import ValidationSplits
+from factor_model.models import ExperimentConfig, ValidationSplits
 from factor_model.validation import split_labeled_data
 
 
