@@ -1,0 +1,25 @@
+[theme]
+base = "light"
+primaryColor = "#17645B"
+backgroundColor = "#F8FAF9"
+secondaryBackgroundColor = "#EDF3F0"
+textColor = "#18312E"
+font = "Segoe UI, sans-serif"
+headingFont = "Segoe UI, sans-serif"
+baseFontSize = 16
+headingFontSizes = ["30px", "24px", "20px", "18px", "16px", "14px"]
+headingFontWeights = [650, 650, 600, 600, 600, 600]
+borderColor = "#CBD8D2"
+baseRadius = "6px"
+showWidgetBorder = true
+showSidebarBorder = true
+linkColor = "#17645B"
+grayColor = "#53645F"
+orangeColor = "#86561B"
+chartCategoricalColors = ["#17645B", "#86561B", "#53645F", "#615488", "#935540"]
+
+[theme.sidebar]
+backgroundColor = "#EDF3F0"
+secondaryBackgroundColor = "#E2EBE6"
+textColor = "#18312E"
+primaryColor = "#17645B"

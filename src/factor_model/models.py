@@ -4,7 +4,7 @@ from datetime import date
 from typing import Literal, Self
 
 import pandas as pd
-from pydantic import BaseModel, ConfigDict, PositiveInt, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, PositiveInt, field_validator, model_validator
 from sklearn.pipeline import Pipeline
 
 
@@ -77,6 +77,13 @@ class ModelEvaluation(BaseModel):
     summary: pd.DataFrame
 
 
+class ModelRun(BaseModel):
+    """One family's fitted winner and its validation evaluation."""
+
+    selection: ModelSelection
+    validation: ModelEvaluation
+
+
 class ExperimentResult(BaseModel):
     """Settings, selected model, and evaluations from one experiment."""
 
@@ -86,3 +93,4 @@ class ExperimentResult(BaseModel):
     selection: ModelSelection
     validation: ModelEvaluation
     test: ModelEvaluation | None = None
+    model_runs: dict[str, ModelRun] = Field(default_factory=dict)
