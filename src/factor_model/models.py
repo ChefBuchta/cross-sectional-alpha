@@ -1,7 +1,7 @@
 """Structured data models used by the research pipeline."""
 
 from datetime import date
-from typing import Self
+from typing import Literal, Self
 
 import pandas as pd
 from pydantic import BaseModel, ConfigDict, PositiveInt, field_validator, model_validator
@@ -47,16 +47,24 @@ class ExperimentConfig(BaseModel):
         return self
 
 
-class RidgeSelection(BaseModel):
+class ModelSelection(BaseModel):
     """Fitted validation winner and the schema needed to score new rows."""
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    best_alpha: float
+    model_name: str
+    best_parameters: dict[str, float | int | str | bool | None]
     pipeline: Pipeline
     feature_columns: tuple[str, ...]
     target_column: str
     comparison: pd.DataFrame
+
+
+class RidgeSelection(ModelSelection):
+    """Ridge-specific result retaining the notebook's best_alpha attribute."""
+
+    model_name: Literal["ridge"] = "ridge"
+    best_alpha: float
 
 
 class ModelEvaluation(BaseModel):
@@ -67,3 +75,14 @@ class ModelEvaluation(BaseModel):
     scored_rows: pd.DataFrame
     daily_ic: pd.DataFrame
     summary: pd.DataFrame
+
+
+class ExperimentResult(BaseModel):
+    """Settings, selected model, and evaluations from one experiment."""
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    config: ExperimentConfig
+    selection: ModelSelection
+    validation: ModelEvaluation
+    test: ModelEvaluation | None = None
