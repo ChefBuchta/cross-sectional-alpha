@@ -90,6 +90,42 @@ produce no recommendation. Unknown stocks and future models retain generic label
 
 ## Verification and critique
 
+### Concision follow-up
+
+Keep the existing theme and primary recommendation hierarchy. Replace repeated
+explanation paragraphs with one short observed reason; move strengths/drawbacks
+under an expander. Add three contextual numbers: rank within the universe,
+average historical top-group advantage in percentage points, and count of dates
+beating the universe average. The latter two always show validation period and
+forward horizon, with a visible warning that this is not independent investment
+proof or the selected stock's success probability. Preserve all detailed views.
+
+Follow-up verification: 72 regression tests passed; compileall and whitespace
+checks passed. New tests cover contextual metric labels/units, exact positive
+date counts, negative advantage, unavailable outcomes, concise reason wording,
+and collapsed explanation details. No network calls or dependencies were added.
+
+Self-review of this follow-up (4.0/5 overall):
+
+- Accuracy 4/5: regression checks cover percentage-point conversion, exact date
+  counts, negative outcomes, and unavailable outcomes; new pixel rendering is
+  not verified. Improve with a desktop/mobile visual check.
+- Completeness 4/5: the checkpoint precedes edits; all existing views remain.
+  Visual confirmation of the final compact layout is still outstanding.
+- Clarity 4/5: rank, validation period, forward horizon, and group-level meaning
+  stay explicit. Percentage points still need their adjacent definition.
+- Actionability 4/5: native widgets need no new dependency or API; users must
+  refresh or start their local Streamlit process to view the update.
+- Conciseness 4/5: the default view removes repeated explanations; expanded
+  methodology intentionally remains detailed for learning.
+
+Highest-impact improvement: visually verify wrapping of the evidence panel on
+desktop and mobile. No critical correctness issue identified. Self-check: the
+request is covered, but the user should judge whether the reduced text now fits
+their preferred density.
+
+The verification below describes the checkpoint before this follow-up.
+
 - Full regression suite: 69 tests passed, including plain-language negative-return
   handling, volume references, unfavorable/undefined evidence, tied leaders,
   absence of headline percentage metrics, and existing page/model/date behavior.

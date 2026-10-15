@@ -226,7 +226,15 @@ class DashboardTest(unittest.TestCase):
     def test_recommendation_explains_why_without_a_giant_historical_percentage(self):
         with patch("factor_model.pipeline.run_experiment", side_effect=self.fake_run) as runner:
             app = self.start(runner)
-            self.assertEqual(len(app.metric), 0)
+            metrics = {item.label: item.value for item in app.metric}
+            self.assertEqual(metrics, {
+                "Model rank": "1 of 4",
+                "Average top-group advantage": "+0.50 pp",
+                "Dates the top group beat the average": "35 / 35",
+            })
+            self.assertTrue(any("following 5 trading days" in item.value and "percentage points" in item.value for item in app.caption))
+            self.assertTrue(any("Validation: Jan 2022–Feb 2022" in item.value and "not this stock's chance" in item.value for item in app.caption))
+            self.assertTrue(any(item.label == "Why this stock? Strengths and drawbacks" and not item.proto.expanded for item in app.expander))
             self.assertTrue(any("Recommendation for further research" in item.value for item in app.caption))
             self.assertTrue(any("No—not on this result alone" in item.value for item in app.warning))
             self.assertTrue(any("Why the model favors it" in item.value for item in app.subheader))
@@ -238,6 +246,29 @@ class DashboardTest(unittest.TestCase):
             self.assertTrue(any("not a percentage return" in item.value for item in app.caption)
                             or len(app.get("arrow_vega_lite_chart")) > 0)
             runner.assert_called_once()
+
+    def test_missing_group_outcomes_are_unavailable_not_zero_success(self):
+        def missing_outcomes(*args, **kwargs):
+            result = self.fake_run(*args, **kwargs)
+            result.model_runs["ridge"].validation.scored_rows["forward_return_5d"] = np.nan
+            return result
+        with patch("factor_model.pipeline.run_experiment", side_effect=missing_outcomes) as runner:
+            app = self.start(runner)
+            metrics = {item.label: item.value for item in app.metric}
+            self.assertEqual(metrics["Average top-group advantage"], "Unavailable")
+            self.assertEqual(metrics["Dates the top group beat the average"], "Unavailable")
+
+    def test_negative_group_advantage_keeps_its_sign_and_counts_losses(self):
+        def losing_group(*args, **kwargs):
+            result = self.fake_run(*args, **kwargs)
+            rows = result.model_runs["ridge"].validation.scored_rows
+            rows["forward_return_5d"] *= -1
+            return result
+        with patch("factor_model.pipeline.run_experiment", side_effect=losing_group) as runner:
+            app = self.start(runner)
+            metrics = {item.label: item.value for item in app.metric}
+            self.assertEqual(metrics["Average top-group advantage"], "-0.50 pp")
+            self.assertEqual(metrics["Dates the top group beat the average"], "0 / 35")
 
     def test_weak_evidence_is_visible_beside_the_recommendation(self):
         def weak_run(*args, **kwargs):

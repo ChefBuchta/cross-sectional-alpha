@@ -6,6 +6,16 @@ from factor_model.recommendations import evidence_readout, observation_text, sco
 
 
 class RecommendationTextTest(unittest.TestCase):
+    def test_concise_reason_keeps_past_period_and_model_effect_separate(self):
+        detailed = score_reason_text("trailing_return_20d", -.07, -.03, .02)
+        concise = score_reason_text("trailing_return_20d", -.07, -.03, .02, concise=True)
+        self.assertLess(len(concise), len(detailed))
+        self.assertIn("previous 20 trading days", concise)
+        self.assertIn("loss of 7.0%", concise)
+        self.assertIn("Helped this model's score", concise)
+        self.assertIn("Lowered this model's score", score_reason_text("volatility_20d", .01, .02, -.1, concise=True))
+        self.assertIn("No clear score effect", score_reason_text("relative_volume_20d", .68, 1., 0., concise=True))
+
     def test_negative_return_is_a_past_loss_not_a_better_forecast(self):
         text = score_reason_text("trailing_return_20d", -.07, -.03, .02)
         self.assertIn("previous 20 trading days", text)

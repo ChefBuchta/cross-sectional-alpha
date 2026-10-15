@@ -102,7 +102,7 @@ def metric_help() -> None:
 
 def render_picks() -> None:
     st.header("Your stock recommendation", icon=":material/format_list_numbered:")
-    st.markdown("A starting point for research, with the reasons and limitations beside it.")
+    st.caption("Research picks first. Historical evidence beside them. Details below.")
     result = current_result()
     if result is None:
         for column, title, detail in zip(st.columns(3), (
@@ -178,28 +178,35 @@ def render_picks() -> None:
             st.caption("Recommendation for further research")
             if len(leaders) == 1:
                 st.header(stock_name(lead_symbol))
-                st.markdown(f"**The model's first choice among {len(selected)} stocks for the next {horizon} trading days.**")
+                st.metric("Model rank", f"1 of {len(selected)}")
             else:
                 st.header("Several stocks share first place")
                 st.markdown(", ".join(stock_name(symbol) for symbol in leaders["symbol"]))
                 st.markdown("The model gives them the same score. There is no single best candidate.")
             st.markdown(
-                "Start here if you want to investigate this model's idea. It expects this "
-                "stock to do better **relative to the others**—not necessarily to rise."
+                "Expected to outperform the other stocks—not necessarily to rise."
             )
             if len(leaders) > 1:
                 st.caption(f"Example explanation for one tied candidate: {stock_name(lead_symbol)}.")
             st.subheader("Why the model favors it")
-            render_plain_reasons(selected, explanations, lead_symbol, maximum=1)
-            st.caption("The final rank combines all model inputs. This explains the model's choice—not why the stock's price must rise.")
+            render_plain_reasons(selected, explanations, lead_symbol, maximum=1, concise=True)
+            st.caption("Explains the model's score, not what will cause the price to move.")
         with track_record.container(border=True):
-            st.subheader("Is this enough to buy?")
-            st.warning("No—not on this result alone.")
+            st.subheader("Historical model evidence")
             st.markdown(f"**{evidence.heading}.**")
-            st.markdown(evidence.selection_result)
-            st.markdown(evidence.baseline_result)
-            st.caption(evidence.limitation)
-            st.caption("This is the model's historical group performance, not a forecast or confidence score for the named stock.")
+            performance = selection_performance(run.validation.scored_rows, f"{name}_score", horizon)
+            edges = performance["selection_edge"].dropna()
+            edge = stats["mean_selection_edge"]
+            edge_value = f"{edge * 100:+.2f} pp" if np.isfinite(edge) else "Unavailable"
+            st.metric("Average top-group advantage", edge_value,
+                      help="pp means percentage points. Group return minus the all-stock average; not portfolio profit.")
+            st.caption(f"Versus all {len(result.config.symbols)} stocks over the following {horizon} trading days. pp = percentage points.")
+            st.metric("Dates the top group beat the average",
+                      f"{int(edges.gt(0).sum())} / {len(edges)}" if len(edges) else "Unavailable")
+            validation_dates = pd.to_datetime(run.validation.scored_rows["date"])
+            st.caption(f"Validation: {validation_dates.min():%b %Y}–{validation_dates.max():%b %Y}. Group-level history, not this stock's chance of success.")
+            st.warning("Enough to buy? No—not on this result alone.")
+            st.caption("Used to select the model; not independent proof. Trading costs are not tested.")
 
         others = group.loc[~group["symbol"].isin(leaders["symbol"])]
         if not others.empty:
@@ -207,18 +214,15 @@ def render_picks() -> None:
             for _, candidate in others.iterrows():
                 symbol = candidate["symbol"]
                 st.markdown(f"**Rank {candidate['predicted_rank']:g}: {stock_name(symbol)}**")
-                render_plain_reasons(selected, explanations, symbol, maximum=1)
-            if kind == "Single-feature sensitivity":
-                st.caption("Reasons can differ between stocks: tree models evaluate combinations of inputs, not a universal rule such as ‘lower variability is always better’.")
+                render_plain_reasons(selected, explanations, symbol, maximum=1, concise=True)
         if len(group) > 3:
             st.caption("The third position is tied. All stocks at that cutoff remain on the shortlist.")
 
-    st.subheader("Understand the suggestion")
-    symbol = st.selectbox("Inspect a stock", selected["symbol"].tolist(), key="picks_explain",
-                          format_func=stock_name)
+    with st.expander("Why this stock? Strengths and drawbacks"):
+        symbol = st.selectbox("Inspect a stock", selected["symbol"].tolist(), key="picks_explain",
+                              format_func=stock_name)
+        render_plain_reasons(selected, explanations, symbol, maximum=2, include_negative=True)
     stock = selected.set_index("symbol").loc[symbol]
-    st.markdown(f"**What helped and what counted against {stock_name(symbol)}**")
-    render_plain_reasons(selected, explanations, symbol, maximum=2, include_negative=True)
 
     with st.expander("Recent history — not a forecast"):
         st.markdown(
@@ -251,6 +255,7 @@ def render_picks() -> None:
 
     with st.expander("Historical evidence and metric definitions"):
         st.markdown(evidence.selection_result)
+        st.markdown(evidence.baseline_result)
         st.markdown(f"Average ordering agreement: {formatted(stats['mean'])}, versus {formatted(baseline)} for the momentum rule.")
         st.caption("The agreement scale runs from −1 (reversed order) to +1 (perfect order); 0 means no rank correlation. It is not a percentage return.")
         st.caption(evidence.limitation)
@@ -268,20 +273,20 @@ def render_picks() -> None:
         st.dataframe(history, hide_index=True, width="stretch")
         st.download_button("Download snapshot history", history.to_csv(index=False).encode(),
                            file_name=f"{name}_{cadence.lower()}_picks.csv", mime="text/csv")
-    st.caption("Not shortlisted does not mean sell or short. This page recommends what to investigate; portfolio sizing, execution, costs, and a trading backtest are still missing.")
+    st.caption("Research only. No trade instructions, position sizing, or trading backtest.")
 
 
 def render_plain_reasons(selected: pd.DataFrame, explanations: pd.DataFrame, symbol: str, maximum: int = 2,
-                         include_negative: bool = False) -> None:
+                         include_negative: bool = False, concise: bool = False) -> None:
     """Every reason contains an observed comparison and a limited model claim."""
     stock = selected.set_index("symbol").loc[symbol]
     effects = explanations.loc[symbol]
     positive = effects.loc[effects > 1e-10].sort_values(ascending=False).head(maximum)
     negative = effects.loc[effects < -1e-10].sort_values().head(maximum)
     if positive.empty:
-        st.markdown("No individual input showed a meaningful positive effect in this comparison. The combined model score determined the rank; we cannot point to a single favorable reason.")
+        st.markdown("No single input clearly helped; the combined model score determined the rank.")
     for feature, effect in positive.items():
-        st.markdown(score_reason_text(feature, stock[feature], selected[feature].mean(), effect))
+        st.markdown(score_reason_text(feature, stock[feature], selected[feature].mean(), effect, concise=concise))
     if include_negative:
         st.markdown("**What counted against it**")
         if negative.empty:

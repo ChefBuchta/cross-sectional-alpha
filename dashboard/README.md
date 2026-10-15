@@ -105,3 +105,12 @@ Results live in the browser session. Switching pages, dates, models, and charts
 does not train again. Restarting the server loses the in-memory results.
 Running `main.py` does not populate this app; saved experiment artifacts are not
 implemented yet. A source-file change is flagged until another experiment runs.
+
+The concise picks view leads with the company, its rank within the configured
+universe, and one observed reason that helped its model score. The evidence panel
+shows the average top-group advantage in percentage points (pp), plus the exact
+number of validation dates when that group beat the all-stock average. Both use
+the displayed forward horizon and refer to the model's historical group—not an
+individual stock's expected return or success probability. Missing outcomes show
+"Unavailable", not zero. Full reasons, drawbacks, recent observations, and metric
+definitions remain in collapsed detail sections.

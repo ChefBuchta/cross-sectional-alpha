@@ -54,8 +54,14 @@ def observation_text(feature: str, value: float, peer_value: float) -> str:
     return f"Its {label} was {value:,.4g}, compared with {peer_value:,.4g} for the average stock shown."
 
 
-def score_reason_text(feature: str, value: float, peer_value: float, effect: float) -> str:
+def score_reason_text(feature: str, value: float, peer_value: float, effect: float,
+                      concise: bool = False) -> str:
     observation = observation_text(feature, value, peer_value)
+    if concise:
+        observation = observation.partition(". ")[0].rstrip(".") + "."
+        if not np.isfinite(effect) or abs(effect) < 1e-10:
+            return f"{observation} No clear score effect."
+        return f"{observation} {'Helped' if effect > 0 else 'Lowered'} this model's score."
     if not np.isfinite(effect) or abs(effect) < 1e-10:
         interpretation = "This input had no meaningful measured score effect in this comparison."
     elif effect > 0:
