@@ -49,7 +49,7 @@ class PipelineModelComparisonTest(unittest.TestCase):
             summary=pd.DataFrame({"mean": [0.0, self.scores[name]]}, index=["baseline", name]),
         )
 
-    def run_mocked(self, evaluate_test=False):
+    def run_mocked(self, evaluate_test=False, model_names=None):
         with ExitStack() as stack:
             stack.enter_context(patch("factor_model.pipeline.build_features", return_value=self.prices.copy()))
             stack.enter_context(patch("factor_model.pipeline.build_targets", return_value=pd.DataFrame()))
@@ -62,7 +62,10 @@ class PipelineModelComparisonTest(unittest.TestCase):
             evaluator = stack.enter_context(patch(
                 "factor_model.pipeline.evaluate_model", side_effect=self.evaluation
             ))
-            result = run_experiment(self.prices, self.config, evaluate_test=evaluate_test)
+            options = {} if model_names is None else {"model_names": model_names}
+            result = run_experiment(
+                self.prices, self.config, evaluate_test=evaluate_test, **options,
+            )
         return result, searches, evaluator
 
     def test_retains_each_family_and_selects_by_validation_mean(self) -> None:
@@ -83,6 +86,33 @@ class PipelineModelComparisonTest(unittest.TestCase):
         self.assertEqual(evaluator.call_count, 4)
         self.assertEqual(evaluator.call_args.args[0].model_name, "random_forest")
         self.assertIs(evaluator.call_args.args[1], self.splits.test)
+
+    def test_can_compare_new_families_and_select_them_using_validation(self) -> None:
+        self.scores.update(elastic_net=.4, extra_trees=.5)
+        result, searches, evaluator = self.run_mocked(
+            evaluate_test=True, model_names=tuple(self.scores),
+        )
+        self.assertEqual(set(result.model_runs), set(self.scores))
+        self.assertEqual(result.selection.model_name, "extra_trees")
+        self.assertEqual(evaluator.call_count, 6)
+        self.assertEqual(evaluator.call_args.args[0].model_name, "extra_trees")
+        self.assertIs(evaluator.call_args.args[1], self.splits.test)
+        for search in searches:
+            self.assertIs(search.call_args.args[0], self.splits.train)
+            self.assertIs(search.call_args.args[1], self.splits.valid)
+
+    def test_requested_subset_does_not_train_unselected_models(self) -> None:
+        self.scores.update(elastic_net=.4, extra_trees=.5)
+        result, searches, evaluator = self.run_mocked(model_names=("extra_trees", "elastic_net"))
+        self.assertEqual(list(result.model_runs), ["extra_trees", "elastic_net"])
+        self.assertEqual(evaluator.call_count, 2)
+        for name, search in zip(self.scores, searches):
+            self.assertEqual(search.call_count, int(name in result.model_runs))
+
+    def test_rejects_unknown_empty_and_duplicate_model_lists(self) -> None:
+        for names in ((), ("typo",), ("ridge", "ridge")):
+            with self.subTest(names=names), self.assertRaises(ValueError):
+                run_experiment(self.prices, self.config, model_names=names)
 
 
 if __name__ == "__main__":

@@ -3,9 +3,27 @@
 Cross-sectional ML pipeline for ranking stocks and backtesting factor-based
 long-short strategies.
 
-> **Project status:** early research scaffold. Yahoo Finance ingestion is
-> implemented and tested. Feature engineering, modeling, backtesting, and the
-> dashboard are planned but intentionally empty.
+## Console backtest
+
+The current runner trains Ridge, Random Forest, gradient boosting, Elastic Net,
+and Extra Trees, compares
+their stock rankings, and simulates **long-only** portfolios after trading costs.
+It also includes momentum and equal-weight universe benchmarks. Output stays in
+the console:
+
+```powershell
+uv run python main.py --top-n 3 --rebalance-every 5 --commission-bps 5 --slippage-bps 5
+uv run python main.py --models elastic_net extra_trees
+```
+
+This uses saved `data/processed/eda_data.csv`. See [backtest assumptions and metric
+definitions](docs/backtesting.md) for next-session execution, costs, chronology,
+and the limitations of the historical evaluation. The long-short design below
+describes the broader original roadmap.
+
+> **Project status:** an experimental pipeline, dashboard, and initial long-only
+> console backtest are implemented. The original roadmap below also includes
+> future work such as long-short trading and stronger robustness checks.
 
 ## The idea
 

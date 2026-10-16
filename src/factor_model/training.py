@@ -4,8 +4,8 @@ from collections.abc import Sequence
 
 import numpy as np
 import pandas as pd
-from sklearn.ensemble import HistGradientBoostingRegressor, RandomForestRegressor
-from sklearn.linear_model import Ridge
+from sklearn.ensemble import ExtraTreesRegressor, HistGradientBoostingRegressor, RandomForestRegressor
+from sklearn.linear_model import ElasticNet, Ridge
 from sklearn.model_selection import ParameterGrid
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
@@ -161,7 +161,7 @@ def evaluate_ridge_model(
     return evaluate_model(selection, rows)
 
 
-def _select_tree_model(
+def _select_candidates(
     train: pd.DataFrame,
     valid: pd.DataFrame,
     model_name: str,
@@ -230,7 +230,7 @@ def select_random_forest_model(
         }
         pipeline = Pipeline([("random_forest", RandomForestRegressor(**settings))])
         candidates.append((settings, pipeline))
-    return _select_tree_model(
+    return _select_candidates(
         train, valid, "random_forest", candidates, feature_columns, target_column
     )
 
@@ -266,6 +266,56 @@ def select_gradient_boosting_model(
             ("gradient_boosting", HistGradientBoostingRegressor(**settings)),
         ])
         candidates.append((settings, pipeline))
-    return _select_tree_model(
+    return _select_candidates(
         train, valid, "gradient_boosting", candidates, feature_columns, target_column
+    )
+
+
+def select_elastic_net_model(
+    train: pd.DataFrame,
+    valid: pd.DataFrame,
+    feature_columns: Sequence[str] = MODEL_FEATURE_COLUMNS,
+    target_column: str = "target_percentile_5d",
+    *,
+    alphas: Sequence[float] = (0.0001, 0.01),
+    l1_ratios: Sequence[float] = (0.2, 0.8),
+) -> ModelSelection:
+    """Compare four mixed L1/L2 penalties with train-only feature scaling."""
+    candidates = []
+    for parameters in ParameterGrid({"alpha": list(alphas), "l1_ratio": list(l1_ratios)}):
+        settings = {**parameters, "max_iter": 10_000, "tol": 1e-6}
+        pipeline = Pipeline([
+            ("scaler", StandardScaler()),
+            ("elastic_net", ElasticNet(**settings)),
+        ])
+        candidates.append((settings, pipeline))
+    return _select_candidates(
+        train, valid, "elastic_net", candidates, feature_columns, target_column,
+    )
+
+
+def select_extra_trees_model(
+    train: pd.DataFrame,
+    valid: pd.DataFrame,
+    feature_columns: Sequence[str] = MODEL_FEATURE_COLUMNS,
+    target_column: str = "target_percentile_5d",
+    *,
+    max_depths: Sequence[int] = (3, 5),
+    min_samples_leaves: Sequence[int] = (100, 20),
+    n_estimators: int = 200,
+    random_state: int = 42,
+) -> ModelSelection:
+    """Compare four shallow randomized-tree ensembles with a fixed seed."""
+    candidates = []
+    grid = ParameterGrid({
+        "max_depth": list(max_depths), "min_samples_leaf": list(min_samples_leaves),
+    })
+    for parameters in grid:
+        settings = {
+            **parameters, "n_estimators": n_estimators, "random_state": random_state,
+        }
+        pipeline = Pipeline([("extra_trees", ExtraTreesRegressor(**settings))])
+        candidates.append((settings, pipeline))
+    return _select_candidates(
+        train, valid, "extra_trees", candidates, feature_columns, target_column,
     )

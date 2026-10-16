@@ -7,6 +7,8 @@ import pandas as pd
 from factor_model.models import ModelSelection
 from factor_model.training import (
     evaluate_model,
+    select_elastic_net_model,
+    select_extra_trees_model,
     select_gradient_boosting_model,
     select_random_forest_model,
 )
@@ -18,6 +20,10 @@ class TreeTrainingTest(unittest.TestCase):
         self.valid = self.make_rows("2025-03-03", 3)
         self.test = self.make_rows("2025-04-01", 3)
         self.searches = (
+            ("extra_trees", select_extra_trees_model, {
+                "max_depths": (2, 3), "min_samples_leaves": (1, 2),
+                "n_estimators": 8,
+            }),
             ("random_forest", select_random_forest_model, {
                 "max_depths": (2, 3), "min_samples_leaves": (1, 2),
                 "n_estimators": 8,
@@ -127,6 +133,59 @@ class TreeTrainingTest(unittest.TestCase):
             self.select(select_random_forest_model, {"max_depths": ()})
         with self.assertRaises(ValueError):
             self.select(select_gradient_boosting_model, {"max_leaf_nodes": ()})
+        with self.assertRaises(ValueError):
+            self.select(select_extra_trees_model, {"max_depths": ()})
+
+
+class ElasticNetTrainingTest(unittest.TestCase):
+    def setUp(self) -> None:
+        self.train = TreeTrainingTest.make_rows("2025-01-02", 20)
+        self.valid = TreeTrainingTest.make_rows("2025-03-03", 3)
+
+    def select(self, **options):
+        return select_elastic_net_model(
+            self.train, self.valid, feature_columns=("factor",),
+            target_column="target_percentile_1d", **options,
+        )
+
+    def test_scales_only_training_data_and_evaluation_never_refits(self):
+        self.valid["factor"] += 100
+        train_before, valid_before = self.train.copy(), self.valid.copy()
+        selection = self.select()
+        self.assertEqual(selection.model_name, "elastic_net")
+        self.assertEqual(len(selection.comparison), 4)
+        self.assertAlmostEqual(
+            selection.pipeline.named_steps["scaler"].mean_[0], self.train.factor.mean(),
+        )
+        expected = selection.pipeline.predict(self.valid[["factor"]])
+        with patch.object(selection.pipeline, "fit", side_effect=AssertionError("refit")):
+            evaluation = evaluate_model(selection, self.valid)
+        np.testing.assert_allclose(evaluation.scored_rows.elastic_net_score, expected)
+        pd.testing.assert_frame_equal(self.train, train_before)
+        pd.testing.assert_frame_equal(self.valid, valid_before)
+
+    def test_selects_by_validation_ic_and_reproduces_predictions(self):
+        with patch("factor_model.training.summarize_daily_ic", side_effect=[
+            {"mean": .1}, {"mean": .4}, {"mean": .2}, {"mean": .3},
+        ]):
+            selection = self.select()
+        for name, value in selection.best_parameters.items():
+            self.assertEqual(selection.comparison.iloc[1][name], value)
+        first, second = self.select(), self.select()
+        np.testing.assert_allclose(
+            first.pipeline.predict(self.valid[["factor"]]),
+            second.pipeline.predict(self.valid[["factor"]]),
+        )
+
+    def test_rejects_overlapping_labels_empty_grid_and_undefined_scores(self):
+        with self.assertRaises(ValueError):
+            self.select(alphas=())
+        self.valid["target_percentile_1d"] = .5
+        with self.assertRaisesRegex(ValueError, "no candidate"):
+            self.select()
+        self.train["label_end_date"] = self.valid.date.min()
+        with self.assertRaisesRegex(ValueError, "labels must end before"):
+            self.select()
 
 
 if __name__ == "__main__":
