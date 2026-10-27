@@ -2,7 +2,7 @@
 
 Cross-sectional ML pipeline for ranking stocks and backtesting factor-based
 long-short strategies.
-
+> 🚧 **Status: Active Research Sandbox (Work in Progress)**
 ## Console backtest
 
 The current runner trains Ridge, Random Forest, gradient boosting, Elastic Net,
